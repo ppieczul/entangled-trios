@@ -14,8 +14,8 @@ the source code license).
 python trios.py [input.xlsx] [output.xlsx]
 ```
 ### Input
-The input Excel file should contain a sheet named `People`. On that sheet, each row should contain one person
-to be processed.
+The input Excel file should contain a sheet named `People` (see [example file](examples/entangled-trios.xlsx)). 
+On that sheet, each row should contain one person to be processed.
 
 Person's name should be entered into a column called `Full Name`.
 
@@ -27,25 +27,26 @@ Examples of categories are: team name, manager name, seniority, tenure, friendsh
 To designate a column that contains a category which should be included in creating the trios, the column name
 should contain a word `YES`, for example: `Team Name - YES`.
 
-All other columns that do not contain word `YES` in their name can be used for other purposes. They will not be taken
+All columns that do not contain word `YES` in their name can be used for other purposes. They will not be taken
 into account when creating trios.
 
 ![xlsx example](pictures/example-xlsx.png)
 
 ### Output
 
-All results are written to the output Excel file. The output spreadsheet will contain two sheets:
+All results are written to the output Excel file (see [example file](examples/entangled-trios-output.xlsx)). 
+The output spreadsheet will contain two sheets:
    - `People with Trios` - a copy of the original input sheet with two columns added:
       - `Trio` - an index of a trio that the person was assigned to, indexes start from 1
       - `Trio Proximity` - a factor representing how close people in that trio are to each other. 
       It is a sum of proximity factors for each of the three pairs of people in the trio (see below for explanation 
       of the proximity factor between two people).
-      - `Personal Proximity` - a factor representing how close that person is close to all other persons. It is a sum
+      - `Personal Proximity` - a factor representing how close that person is close to all other people. It is a sum
       of the proximity factors between all pairs of people including the person for which the factor is calculated.
    - `Trios` - a list of all generated trios and their proximity factor.
 
-For people, which could not be assigned to any trio (when number of people is not divisible by three), the added column
-values will be empty.
+For people, which could not be assigned to any trio (when number of people is not divisible by three), the trio
+columns will be empty.
 
 ![xlsx example](pictures/example-result-1.png)
 
@@ -63,8 +64,11 @@ The trios are generated in the following way:
      a highly diverse trio.
    - For each person, all possible trios are generated with their respective `Trio Proximity` factors.
      A trio with the smallest value of the proximity factor is assigned for the person.
-   - The three people assigned to a trio are removed from the list of people to generate further trios
+   - The three people assigned to a trio are removed from the list of people to generate further trios.
 
 This method is not optimal, but it produces fair results. Its computational complexity is square. For numbers of people
 in the hundreds, it completes in a few seconds on a modern computer. 
 
+## Acknowledgements
+
+The population used in example spreadsheets has been generated using https://www.randomlists.com/ web page.
