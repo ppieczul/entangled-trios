@@ -1,2 +1,4 @@
 xlsxwriter
 pandas
+openpyxl
+

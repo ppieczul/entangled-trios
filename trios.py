@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import random
 import sys
 import pandas
 from itertools import combinations
@@ -71,7 +72,7 @@ class Population:
             self.population[name] = Person(name, i, names)
 
 
-def build_trios(population):
+def build_trios(population, reviewers):
     result = []
     left = []
     while len(population) > 0:
@@ -92,7 +93,8 @@ def build_trios(population):
                 f32 = p3.relations[p2.name].proximity
                 assert (f23 == f32)
                 factor = f12 + f13 + f23
-                options.append((factor, p1.name, p2.name, p3.name))
+                panel = build_ritual_dissent_panel(reviewers, [p1.name, p2.name, p3.name])
+                options.append((factor, p1.name, p2.name, p3.name, panel))
                 if factor == 0:
                     break
         if len(options) > 0:
@@ -103,6 +105,44 @@ def build_trios(population):
         else:
             left.append(p1)
     return result, left
+
+
+class Reviewer:
+    def participate(self):
+        self.participation += 1
+
+    def __init__(self, name):
+        self.participation = 0
+        self.name = name
+
+
+class Reviewers:
+    def add(self, reviewer):
+        self.reviewers.append(reviewer)
+
+    def sort(self):
+        self.reviewers = sorted(self.reviewers, key=lambda x: x.participation)
+
+    def get(self, index):
+        return self.reviewers[index]
+
+    def __init__(self, participants):
+        self.reviewers = [Reviewer(i) for i in participants]
+        random.seed(1)
+        random.shuffle(self.reviewers)
+
+
+def build_ritual_dissent_panel(all_reviewers, trio_names):
+    all_reviewers.sort()
+    panel = []
+    i = 0
+    while len(panel) < 12:
+        r = all_reviewers.get(i)
+        if r.name not in trio_names:
+            r.participate()
+            panel.append(r.name)
+        i += 1
+    return panel
 
 
 if __name__ == '__main__':
@@ -125,9 +165,10 @@ if __name__ == '__main__':
         population_by_proximity = people.sort_by_proximity()
         initial_size = len(population_by_proximity)
 
-        trios, leftover = build_trios(population_by_proximity)
+        reviewers = Reviewers(names)
+        trios, leftover = build_trios(population_by_proximity, reviewers)
 
-        df_out = pandas.DataFrame(columns=['Person 1', 'Person 2', 'Person 3', 'Proximity'])
+        df_out = pandas.DataFrame(columns=['Person 1', 'Person 2', 'Person 3', 'Proximity', 'Panel'])
         df_in.set_index('Full Name', inplace=True)
         for idx, trio in enumerate(trios):
             print(trio)
@@ -135,6 +176,7 @@ if __name__ == '__main__':
             df_out.loc[idx + 1, 'Person 1'] = trio[1]
             df_out.loc[idx + 1, 'Person 2'] = trio[2]
             df_out.loc[idx + 1, 'Person 3'] = trio[3]
+            df_out.loc[idx + 1, 'Panel'] = ''.join(x + '; ' for x in trio[4])
             for p in range(1, 4):
                 df_in.loc[trio[p], 'Trio'] = idx + 1
                 df_in.loc[trio[p], 'Trio Proximity'] = trio[0]
